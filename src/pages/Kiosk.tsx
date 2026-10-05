@@ -4,17 +4,21 @@ type Emp = { id: string; full_name: string; sector: string }
 type Fl = { id: number; name: string }
 type Sum = { open_qty: number; open_amount: number; price: number }
 const btn = 'rounded-2xl font-bold active:scale-95 transition shadow'
+const field = 'text-2xl p-4 rounded-2xl border-2 border-orange-300 bg-white'
+const mask = (v: string) => { const d = v.replace(/\D/g, '').slice(0, 11); return d.length <= 2 ? d : d.length <= 6 ? `(${d.slice(0, 2)}) ${d.slice(2)}` : d.length <= 10 ? `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}` : `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}` }
 
 export default function Kiosk() {
-  const [step, setStep] = useState<'name' | 'flavor' | 'qty' | 'done'>('name')
+  const [step, setStep] = useState<'name' | 'signup' | 'flavor' | 'qty' | 'done'>('name')
   const [q, setQ] = useState(''); const [list, setList] = useState<Emp[]>([])
   const [emp, setEmp] = useState<Emp>(); const [flavors, setFlavors] = useState<Fl[]>([])
   const [fl, setFl] = useState<Fl>(); const [qty, setQty] = useState(1)
   const [sum, setSum] = useState<Sum>(); const [res, setRes] = useState<Sum>()
+  const [form, setForm] = useState({ name: '', sector: '', phone: '' }); const [sectors, setSectors] = useState<string[]>([])
   const [err, setErr] = useState(''); const [busy, setBusy] = useState(false)
 
-  const reset = () => { setStep('name'); setQ(''); setList([]); setEmp(undefined); setFl(undefined); setQty(1); setSum(undefined); setErr(''); setBusy(false) }
+  const reset = () => { setStep('name'); setQ(''); setList([]); setEmp(undefined); setFl(undefined); setQty(1); setSum(undefined); setErr(''); setBusy(false); setForm({ name: '', sector: '', phone: '' }) }
 
+  useEffect(() => { sb.rpc('list_sectors').then(r => setSectors(r.data ?? [])) }, [])
   useEffect(() => { sb.from('flavors').select('id,name').order('id').then(r => setFlavors(r.data ?? [])) }, [])
   useEffect(() => {
     if (q.trim().length < 2) { setList([]); return }
@@ -24,9 +28,18 @@ export default function Kiosk() {
   useEffect(() => { if (emp) sb.rpc('get_summary', { p_employee: emp.id }).then(r => setSum(r.data)) }, [emp])
   useEffect(() => { // volta sozinho se ninguém terminar
     if (step === 'name') return
-    const t = setTimeout(reset, step === 'done' ? 5000 : 45000)
+    const t = setTimeout(reset, step === 'done' ? 5000 : step === 'signup' ? 120000 : 45000)
     return () => clearTimeout(t)
-  }, [step, qty, emp])
+  }, [step, qty, emp, form])
+
+  async function signup() {
+    if (busy) return
+    setBusy(true); setErr('')
+    const r = await sb.rpc('register_employee', { p_name: form.name, p_sector: form.sector, p_phone: form.phone })
+    setBusy(false)
+    if (r.error) { setErr(r.error.message); return }
+    setEmp({ id: r.data.id, full_name: r.data.full_name, sector: r.data.sector }); setStep('flavor')
+  }
 
   async function confirm() {
     if (!emp || !fl || busy) return
@@ -58,6 +71,18 @@ export default function Kiosk() {
           <button key={e.id} onClick={() => { setEmp(e); setStep('flavor') }} className={btn + ' bg-white p-4 text-left text-2xl'}>
             {e.full_name}<div className="text-base font-normal text-slate-500">{e.sector}</div>
           </button>))}
+        {q.trim().length >= 2 && list.length === 0 && <p className="text-lg text-slate-500">Nenhum nome encontrado.</p>}
+        <button onClick={() => { setErr(''); setStep('signup') }} className={btn + ' bg-white border-2 border-orange-400 text-orange-600 text-xl py-4'}>➕ Cadastrar-se</button>
+      </>}
+      {step === 'signup' && <>
+        <p className="text-2xl font-semibold">Cadastro rápido</p>
+        <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Nome completo" maxLength={120} autoComplete="off" className={field} />
+        <input list="setores" value={form.sector} onChange={e => setForm({ ...form, sector: e.target.value })} placeholder="Setor" maxLength={60} autoComplete="off" className={field} />
+        <datalist id="setores">{sectors.map(x => <option key={x} value={x} />)}</datalist>
+        <input inputMode="tel" value={mask(form.phone)} onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 11) })} placeholder="WhatsApp com DDD" className={field} />
+        {err && <p className="text-red-600 text-lg font-semibold">⚠️ {err}</p>}
+        <button disabled={busy} onClick={signup} className={btn + ' bg-green-600 text-white text-2xl py-6'}>{busy ? 'Cadastrando…' : 'CADASTRAR E CONTINUAR'}</button>
+        <button onClick={() => { setErr(''); setStep('name') }} className="text-slate-500 text-lg py-2">← Voltar</button>
       </>}
       {step === 'flavor' && <>
         <p className="text-2xl font-semibold">{emp?.full_name}, qual sabor?</p>
