@@ -39,13 +39,14 @@ function Estoque() {
   const [date, setDate] = useState(today()); const [day, setDay] = useState<{ id: string; status: string } | null>(null)
   const [rows, setRows] = useState<Row[]>([]); const [fl, setFl] = useState<{ id: number; name: string }[]>([])
   const [vals, setVals] = useState<Record<number, string>>({}); const [price, setPrice] = useState('10')
+  const [counting, setCounting] = useState(false)
   const load = useCallback(async () => {
     const f = await sb.from('flavors').select('id,name').eq('active', true).order('id'); setFl(f.data ?? [])
     const p = await sb.from('settings').select('unit_price').single(); if (p.data) setPrice(String(p.data.unit_price))
     const d = await sb.from('stock_days').select('id,status').eq('stock_date', date).maybeSingle(); setDay(d.data)
     if (d.data) { const r = await sb.from('stock_panel').select('*').eq('stock_day_id', d.data.id).order('flavor_id'); setRows(r.data ?? []) } else setRows([])
   }, [date])
-  useEffect(() => { load(); const t = setInterval(load, 15000); return () => clearInterval(t) }, [load])
+  useEffect(() => { load(); const t = setInterval(() => { if (!counting) load() }, 15000); return () => clearInterval(t) }, [load, counting])
 
   async function start() {
     const d = await sb.from('stock_days').insert({ stock_date: date }).select('id').single()
@@ -53,50 +54,80 @@ function Estoque() {
     await sb.from('stock_items').insert(fl.map(f => ({ stock_day_id: d.data.id, flavor_id: f.id, initial_qty: Math.max(0, parseInt(vals[f.id] || '0') || 0) })))
     setVals({}); load()
   }
-  async function close() {
-    if (!day || !confirm('Fechar o dia? Depois não dá para alterar.')) return
-    for (const r of rows) await sb.from('stock_items').update({ counted_qty: Math.max(0, parseInt(vals[r.flavor_id] || '0') || 0) }).eq('stock_day_id', day.id).eq('flavor_id', r.flavor_id)
-    await sb.from('stock_days').update({ status: 'closed', closed_at: new Date().toISOString() }).eq('id', day.id); setVals({}); load()
+  async function setStatus(status: 'open' | 'closed') {
+    if (!day) return
+    await sb.from('stock_days').update({ status, closed_at: status === 'closed' ? new Date().toISOString() : null }).eq('id', day.id); load()
   }
+  function startCount() { const v: Record<number, string> = {}; rows.forEach(r => { if (r.counted_qty !== null) v[r.flavor_id] = String(r.counted_qty) }); setVals(v); setCounting(true) }
+  async function saveCounts() {
+    if (!day) return
+    for (const r of rows) {
+      const v = vals[r.flavor_id]
+      await sb.from('stock_items').update({ counted_qty: v === undefined || v === '' ? null : Math.max(0, parseInt(v) || 0) }).eq('stock_day_id', day.id).eq('flavor_id', r.flavor_id)
+    }
+    setVals({}); setCounting(false); load()
+  }
+  const over = date < today()
+  const isOpen = day?.status === 'open' && !over
+  const counted = rows.length > 0 && rows.every(r => r.counted_qty !== null)
   const tot = rows.reduce((a, r) => ({ i: a.i + r.initial_qty, s: a.s + r.sold, c: a.c + (r.counted_qty ?? 0) }), { i: 0, s: 0, c: 0 })
   const lost = tot.i - tot.s - tot.c
 
   return (
     <div className="space-y-3">
       <div className="flex gap-3 items-center flex-wrap">
-        <label>Data <input type="date" className={inp} value={date} onChange={e => setDate(e.target.value)} /></label>
+        <label>Data <input type="date" className={inp} value={date} onChange={e => { setDate(e.target.value); setCounting(false); setVals({}) }} /></label>
         <label className="ml-auto">Preço do pote R$ <input className={inp + ' w-20'} value={price} onChange={e => setPrice(e.target.value)} onBlur={() => sb.from('settings').update({ unit_price: Number(price.replace(',', '.')) }).eq('id', 1)} /></label>
       </div>
       {!day && <div className="bg-white rounded-xl p-4 space-y-2"><h2 className="font-bold text-lg">Abastecimento do Dia</h2>
         {fl.map(f => <label key={f.id} className="flex justify-between">{f.name}<input type="number" min={0} className={inp + ' w-24'} value={vals[f.id] ?? ''} onChange={e => setVals({ ...vals, [f.id]: e.target.value })} /></label>)}
         <button className={b + ' w-full'} onClick={start}>INICIAR VENDAS</button></div>}
-      {day && <div className="bg-white rounded-xl p-4 space-y-2 overflow-x-auto">
-        <table className="w-full text-left"><thead><tr><th>Sabor</th><th>Inicial</th><th>Vendidos</th><th>Saldo</th>{day.status === 'open' && <th>Sobrou (físico)</th>}{day.status === 'closed' && <th>Contado</th>}</tr></thead>
-          <tbody>{rows.map(r => { const bal = r.initial_qty - r.sold; const low = day.status === 'open' && r.initial_qty > 0 && bal <= r.initial_qty * 0.2
+      {day && <div className="bg-white rounded-xl p-4 space-y-3 overflow-x-auto">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={'font-bold text-lg ' + (isOpen ? 'text-green-700' : 'text-slate-500')}>{over ? '📅 Dia encerrado' : isOpen ? '🟢 Vendas abertas' : '🔴 Vendas fechadas'}</span>
+          <div className="ml-auto flex gap-2">
+            {isOpen && <button className={b + ' !bg-slate-600'} onClick={() => setStatus('closed')}>⏸ Fechar vendas</button>}
+            {!isOpen && !over && <button className={b + ' !bg-green-600'} onClick={() => setStatus('open')}>▶ Reabrir vendas</button>}
+          </div>
+        </div>
+        <table className="w-full text-left"><thead><tr><th>Sabor</th><th>Inicial</th><th>Vendidos</th><th>Saldo</th><th>Sobrou (físico)</th></tr></thead>
+          <tbody>{rows.map(r => { const bal = r.initial_qty - r.sold; const low = isOpen && r.initial_qty > 0 && bal <= r.initial_qty * 0.2
             return <tr key={r.flavor_id} className={low ? 'text-red-600 font-semibold' : ''}><td>{r.flavor}{low && ' ⚠️ estoque baixo'}</td><td>{r.initial_qty}</td><td>{r.sold}</td><td>{bal}</td>
-              {day.status === 'open' && <td><input type="number" min={0} className={inp + ' w-20'} value={vals[r.flavor_id] ?? ''} onChange={e => setVals({ ...vals, [r.flavor_id]: e.target.value })} /></td>}
-              {day.status === 'closed' && <td>{r.counted_qty}</td>}</tr> })}</tbody></table>
+              <td>{counting ? <input type="number" min={0} className={inp + ' w-20'} value={vals[r.flavor_id] ?? ''} onChange={e => setVals({ ...vals, [r.flavor_id]: e.target.value })} /> : (r.counted_qty ?? '—')}</td></tr> })}</tbody></table>
         <p>Total inicial: <b>{tot.i}</b> · Registrado: <b>{tot.s}</b> · Saldo esperado: <b>{tot.i - tot.s}</b></p>
-        {day.status === 'open' && <button className={b + ' !bg-red-600'} onClick={close}>FECHAR DIA</button>}
-        {day.status === 'closed' && (lost > 0
-          ? <p className="text-red-600 font-bold">⚠️ Possível perda: {lost} bolos — {brl(lost * Number(price.replace(',', '.')))} ({tot.i ? Math.round(lost / tot.i * 100) : 0}% do inicial)</p>
-          : <p className="text-green-700 font-bold">✅ Sem perdas detectadas{lost < 0 ? ` (sobraram ${-lost} a mais que o esperado — confira)` : ''}</p>)}
+        <div className="flex gap-2">
+          {!counting && <button className={b} onClick={startCount}>📋 Informar sobras</button>}
+          {counting && <><button className={b + ' !bg-green-600'} onClick={saveCounts}>Salvar sobras</button><button className="text-slate-500 px-3" onClick={() => { setCounting(false); setVals({}) }}>Cancelar</button></>}
+        </div>
+        {!counting && (counted
+          ? (lost > 0
+            ? <p className="text-red-600 font-bold">⚠️ Possível perda: {lost} bolos — {brl(lost * Number(price.replace(',', '.')))} ({tot.i ? Math.round(lost / tot.i * 100) : 0}% do inicial)</p>
+            : <p className="text-green-700 font-bold">✅ Sem perdas detectadas{lost < 0 ? ` (sobraram ${-lost} a mais que o esperado, confira)` : ''}</p>)
+          : <p className="text-slate-500">Sobras ainda não informadas: o alerta de perdas só aparece depois que você informar quantos bolos sobraram.</p>)}
       </div>}
     </div>)
 }
 
-type Bal = { id: string; full_name: string; sector: string; qty: number; amount: number }
+type Bal = { id: string; full_name: string; sector: string; qty: number; amount: number; phone: string | null }
+function waLink(x: Bal, pix: string) {
+  let t = (x.phone ?? '').replace(/\D/g, ''); if (t.length < 10) return null
+  if (t.length <= 11) t = '55' + t
+  const msg = `Olá, ${x.full_name.split(' ')[0]}! 🍰\n\nVocê retirou ${x.qty} ${x.qty === 1 ? 'bolo' : 'bolos'} de pote, total de ${brl(x.amount)}.\n\nPagamento via Pix: ${pix || '(informe a chave)'}\n\nMuito obrigado pela preferência!`
+  return `https://wa.me/${t}?text=${encodeURIComponent(msg)}`
+}
 function Pend() {
-  const [l, setL] = useState<Bal[]>([])
+  const [l, setL] = useState<Bal[]>([]); const [pix, setPix] = useState('')
   const load = useCallback(() => { sb.from('open_balances').select('*').order('amount', { ascending: false }).then(r => setL(r.data ?? [])) }, [])
-  useEffect(load, [load])
+  useEffect(() => { load(); sb.from('settings').select('pix_key').single().then(r => setPix(r.data?.pix_key ?? '')) }, [load])
   return (
     <div className="space-y-2">
+      <label className="block">Chave Pix (vai na mensagem) <input className={inp + ' w-full'} value={pix} onChange={e => setPix(e.target.value)} onBlur={() => sb.from('settings').update({ pix_key: pix.trim() || null }).eq('id', 1)} /></label>
       <p className="font-bold">Total pendente: {brl(l.reduce((a, x) => a + Number(x.amount), 0))}</p>
-      {l.map(x => <div key={x.id} className="bg-white rounded-xl p-3 flex items-center gap-3">
+      {l.map(x => { const wa = waLink(x, pix); return <div key={x.id} className="bg-white rounded-xl p-3 flex items-center gap-2 flex-wrap">
         <div className="flex-1"><b>{x.full_name}</b> <span className="text-slate-500">{x.sector}</span><div>{x.qty} potes em aberto — {brl(x.amount)}</div></div>
+        {wa ? <a href={wa} target="_blank" rel="noreferrer" className={b + ' !bg-green-600'}>📲 Cobrar</a> : <span className="text-sm text-slate-400">sem telefone</span>}
         <button className={b} onClick={async () => { if (confirm(`Marcar ${brl(x.amount)} de ${x.full_name} como pago?`)) { await sb.rpc('pay_employee', { p_employee: x.id }); load() } }}>✅ Pago</button>
-      </div>)}
+      </div> })}
       {!l.length && <p>Nenhuma pendência 🎉</p>}
     </div>)
 }
