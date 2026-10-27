@@ -1,1 +1,1 @@
-{"root":["./src/main.tsx","./src/vite-env.d.ts","./src/lib/format.ts","./src/lib/supabase.ts","./src/lib/types.ts","./src/pages/admin.tsx","./src/pages/kiosk.tsx","./vite.config.ts"],"version":"5.9.3"}
+{"root":["./src/main.tsx","./src/vite-env.d.ts","./src/lib/format.ts","./src/lib/supabase.ts","./src/lib/types.ts","./src/pages/admin.tsx","./src/pages/kiosk.tsx","./src/pages/pedido.tsx","./vite.config.ts"],"version":"5.9.3"}

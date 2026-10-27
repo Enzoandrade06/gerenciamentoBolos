@@ -7,18 +7,18 @@ const b = 'rounded-lg px-4 py-2 font-semibold text-white bg-orange-500 active:sc
 
 export default function Admin() {
   const [s, setS] = useState<Session | null>(null); const [ready, setReady] = useState(false)
-  const [tab, setTab] = useState<'estoque' | 'pend' | 'func' | 'sab'>('estoque')
+  const [tab, setTab] = useState<'estoque' | 'res' | 'pend' | 'func' | 'sab'>('estoque')
   useEffect(() => { sb.auth.getSession().then(r => { setS(r.data.session); setReady(true) }); const { data } = sb.auth.onAuthStateChange((_e, x) => setS(x)); return () => data.subscription.unsubscribe() }, [])
   if (!ready) return null
   if (!s) return <Login />
   return (
     <div className="max-w-3xl mx-auto p-4 space-y-4">
       <div className="flex gap-2 items-center flex-wrap">
-        {([['estoque', '📦 Estoque'], ['pend', '💰 Pendências'], ['sab', '🍰 Sabores'], ['func', '👥 Funcionários']] as const).map(([k, l]) =>
+        {([['estoque', '📦 Estoque'], ['res', '📥 Reservas'], ['pend', '💰 Pendências'], ['sab', '🍰 Sabores'], ['func', '👥 Funcionários']] as const).map(([k, l]) =>
           <button key={k} onClick={() => setTab(k)} className={b + (tab === k ? '' : ' !bg-slate-400')}>{l}</button>)}
         <button onClick={() => sb.auth.signOut()} className="ml-auto text-slate-500">Sair</button>
       </div>
-      {tab === 'estoque' && <Estoque />}{tab === 'pend' && <Pend />}{tab === 'sab' && <Sabores />}{tab === 'func' && <Func />}
+      {tab === 'estoque' && <Estoque />}{tab === 'res' && <Reservas />}{tab === 'pend' && <Pend />}{tab === 'sab' && <Sabores />}{tab === 'func' && <Func />}
     </div>)
 }
 
@@ -179,5 +179,42 @@ function Sabores() {
           <button className="text-red-600" onClick={async () => { await sb.from('flavors').update({ active: !f.active }).eq('id', f.id); load() }}>{f.active ? 'Desativar' : 'Reativar'}</button>
         </div>))}
       <p className="text-sm text-slate-500">Sabores desativados somem do quiosque e do próximo abastecimento, mas o histórico é mantido. Cadastre sabores novos antes de clicar em INICIAR VENDAS.</p>
+    </div>)
+}
+
+type Res = { id: string; name: string; sector: string; phone: string; created_at: string; reservation_items: { quantity: number; flavors: any }[] }
+function Reservas() {
+  const [l, setL] = useState<Res[]>([]); const [contact, setContact] = useState('')
+  const load = useCallback(async () => {
+    const r = await sb.from('reservations').select('id,name,sector,phone,created_at,reservation_items(quantity,flavors(name))').eq('status', 'reserved').order('created_at')
+    setL((r.data as any) ?? [])
+  }, [])
+  useEffect(() => { load(); sb.from('settings').select('contact_phone').single().then(r => setContact(r.data?.contact_phone ?? '')); const t = setInterval(load, 15000); return () => clearInterval(t) }, [load])
+  const link = `${location.origin}/pedido`
+  const lines = (r: Res) => r.reservation_items.map(i => `${i.quantity} ${i.flavors?.name ?? ''}`)
+  const wa = (r: Res) => {
+    let t = r.phone.replace(/\D/g, ''); if (t.length <= 11) t = '55' + t
+    const msg = `Olá, ${r.name.split(' ')[0]}! Recebi sua reserva:\n${lines(r).join('\n')}\n\nJá separei pra você! 🍰`
+    window.open(`https://wa.me/${15997053661}?text=${encodeURIComponent(msg)}`, '_blank')
+  }
+  return (
+    <div className="space-y-3">
+      <div className="bg-white rounded-xl p-3 space-y-2">
+        <div className="font-semibold">Link para postar no status</div>
+        <div className="flex gap-2"><input readOnly className={inp + ' flex-1'} value={link} /><button className={b} onClick={() => navigator.clipboard?.writeText(link).then(() => alert('Link copiado!'))}>Copiar</button></div>
+        <label className="block">WhatsApp que recebe os pedidos (com DDD)
+          <input className={inp + ' w-full'} value={contact} placeholder="15999999999" onChange={e => setContact(e.target.value)} onBlur={() => sb.from('settings').update({ contact_phone: contact.replace(/\D/g, '') || null }).eq('id', 1)} /></label>
+      </div>
+      {l.map(r => (
+        <div key={r.id} className="bg-white rounded-xl p-3 space-y-2">
+          <div><b>{r.name}</b> <span className="text-slate-500">{r.sector} · {r.phone}</span></div>
+          <div>{lines(r).map((x, i) => <div key={i}>• {x}</div>)}</div>
+          <div className="flex gap-2 flex-wrap items-center">
+            <button className={b + ' !bg-green-600'} onClick={() => wa(r)}>📲 Responder</button>
+            <button className={b} onClick={async () => { const e = await sb.rpc('deliver_reservation', { p_id: r.id }); if (e.error) alert(e.error.message); load() }}>✅ Entregue</button>
+            <button className="text-red-600 px-3" onClick={async () => { if (confirm(`Cancelar a reserva de ${r.name}? O estoque volta.`)) { await sb.from('reservations').update({ status: 'cancelled' }).eq('id', r.id); load() } }}>Cancelar</button>
+          </div>
+        </div>))}
+      {!l.length && <p>Nenhuma reserva aguardando entrega.</p>}
     </div>)
 }
