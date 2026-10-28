@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { sb, brl, plural } from '../lib/supabase'
+import { sb, brl, plural } from '../../lib/supabase'
 type Emp = { id: string; full_name: string; sector: string }
 type Fl = { id: number; name: string }
 type Sum = { open_qty: number; open_amount: number; price: number }

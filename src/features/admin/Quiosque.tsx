@@ -1,36 +1,18 @@
 import { useEffect, useState, useCallback } from 'react'
-import type { Session } from '@supabase/supabase-js'
-import { sb, brl } from '../lib/supabase'
+import { sb, brl } from '../../lib/supabase'
 const today = () => new Date().toLocaleDateString('sv', { timeZone: 'America/Sao_Paulo' })
 const inp = 'border rounded-lg p-2 bg-white'
 const b = 'rounded-lg px-4 py-2 font-semibold text-white bg-orange-500 active:scale-95'
 
-export default function Admin() {
-  const [s, setS] = useState<Session | null>(null); const [ready, setReady] = useState(false)
+export default function Quiosque() {
   const [tab, setTab] = useState<'estoque' | 'res' | 'pend' | 'func' | 'sab'>('estoque')
-  useEffect(() => { sb.auth.getSession().then(r => { setS(r.data.session); setReady(true) }); const { data } = sb.auth.onAuthStateChange((_e, x) => setS(x)); return () => data.subscription.unsubscribe() }, [])
-  if (!ready) return null
-  if (!s) return <Login />
   return (
-    <div className="max-w-3xl mx-auto p-4 space-y-4">
-      <div className="flex gap-2 items-center flex-wrap">
+    <div className="space-y-4">
+      <div className="flex gap-2 flex-wrap">
         {([['estoque', '📦 Estoque'], ['res', '📥 Reservas'], ['pend', '💰 Pendências'], ['sab', '🍰 Sabores'], ['func', '👥 Funcionários']] as const).map(([k, l]) =>
           <button key={k} onClick={() => setTab(k)} className={b + (tab === k ? '' : ' !bg-slate-400')}>{l}</button>)}
-        <button onClick={() => sb.auth.signOut()} className="ml-auto text-slate-500">Sair</button>
       </div>
       {tab === 'estoque' && <Estoque />}{tab === 'res' && <Reservas />}{tab === 'pend' && <Pend />}{tab === 'sab' && <Sabores />}{tab === 'func' && <Func />}
-    </div>)
-}
-
-function Login() {
-  const [email, setE] = useState(''); const [pw, setP] = useState(''); const [err, setErr] = useState('')
-  return (
-    <div className="max-w-sm mx-auto p-6 space-y-3 mt-16">
-      <h1 className="text-2xl font-bold">Admin — Bolos de Pote</h1>
-      <input className={inp + ' w-full'} type="email" placeholder="E-mail" value={email} onChange={e => setE(e.target.value)} />
-      <input className={inp + ' w-full'} type="password" placeholder="Senha" value={pw} onChange={e => setP(e.target.value)} />
-      {err && <p className="text-red-600">{err}</p>}
-      <button className={b + ' w-full'} onClick={async () => { const r = await sb.auth.signInWithPassword({ email, password: pw }); if (r.error) setErr('Login inválido') }}>Entrar</button>
     </div>)
 }
 
@@ -195,7 +177,7 @@ function Reservas() {
   const wa = (r: Res) => {
     let t = r.phone.replace(/\D/g, ''); if (t.length <= 11) t = '55' + t
     const msg = `Olá, ${r.name.split(' ')[0]}! Recebi sua reserva:\n${lines(r).join('\n')}\n\nJá separei pra você! 🍰`
-    window.open(`https://wa.me/${15997053661}?text=${encodeURIComponent(msg)}`, '_blank')
+    window.open(`https://wa.me/${t}?text=${encodeURIComponent(msg)}`, '_blank')
   }
   return (
     <div className="space-y-3">

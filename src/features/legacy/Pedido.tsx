@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { sb } from '../lib/supabase'
+import { sb } from '../../lib/supabase'
 type Fl = { id: number; name: string; available: number }
 type Stock = { open: boolean; contact?: string; flavors?: Fl[] }
 const mask = (v: string) => { const d = v.replace(/\D/g, '').slice(0, 11); return d.length <= 2 ? d : d.length <= 6 ? `(${d.slice(0, 2)}) ${d.slice(2)}` : d.length <= 10 ? `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}` : `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}` }
