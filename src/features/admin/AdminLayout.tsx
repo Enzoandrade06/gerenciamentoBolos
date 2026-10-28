@@ -7,6 +7,8 @@ import { Loading } from '../../components/ui'
 const NAV = [
   { to: '/admin', label: '🏠 Início', end: true },
   { to: '/admin/categorias', label: '🗂️ Categorias' },
+  { to: '/admin/produtos', label: '📦 Produtos' },
+  { to: '/admin/abastecimento', label: '📋 Abastecimento' },
   { to: '/admin/quiosque', label: '🏪 Quiosque' },
 ]
 

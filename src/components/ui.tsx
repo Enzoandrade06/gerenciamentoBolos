@@ -1,3 +1,4 @@
+import { useEffect, type ReactNode } from 'react'
 export function Loading({ text = 'Carregando…' }: { text?: string }) {
   return <div className="min-h-[40vh] flex items-center justify-center text-slate-500">{text}</div>
 }
@@ -11,4 +12,17 @@ export function NotFound() {
 export function Notice({ msg }: { msg: { ok: boolean; text: string } | null }) {
   if (!msg) return null
   return <div role="status" className={`rounded-xl px-4 py-3 text-sm font-semibold ${msg.ok ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{msg.text}</div>
+}
+
+export function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+  useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }; window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k) }, [onClose])
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center" onClick={onClose}>
+      <div role="dialog" aria-modal="true" aria-label={title} onClick={e => e.stopPropagation()}
+        className="bg-white w-full sm:max-w-3xl rounded-t-3xl sm:rounded-3xl max-h-[94vh] overflow-y-auto p-5 space-y-4">
+        <div className="flex items-center justify-between"><h2 className="text-xl font-extrabold">{title}</h2>
+          <button onClick={onClose} aria-label="Fechar" className="text-2xl px-2 text-slate-500">✕</button></div>
+        {children}
+      </div>
+    </div>)
 }

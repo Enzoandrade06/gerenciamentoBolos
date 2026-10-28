@@ -7,6 +7,8 @@ const AdminLayout = lazy(() => import('../features/admin/AdminLayout'))
 const Login = lazy(() => import('../features/admin/Login'))
 const Home = lazy(() => import('../features/admin/Home'))
 const Categorias = lazy(() => import('../features/admin/Categorias'))
+const Produtos = lazy(() => import('../features/admin/Produtos'))
+const Abastecimento = lazy(() => import('../features/admin/Abastecimento'))
 const Quiosque = lazy(() => import('../features/admin/Quiosque'))
 
 export default function App() {
@@ -23,6 +25,8 @@ export default function App() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Home />} />
             <Route path="categorias" element={<Categorias />} />
+            <Route path="produtos" element={<Produtos />} />
+            <Route path="abastecimento" element={<Abastecimento />} />
             <Route path="quiosque" element={<Quiosque />} />
           </Route>
           <Route path="*" element={<NotFound />} />
