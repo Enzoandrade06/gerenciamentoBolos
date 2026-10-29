@@ -9,6 +9,7 @@ const NAV = [
   { to: '/admin/categorias', label: '🗂️ Categorias' },
   { to: '/admin/produtos', label: '📦 Produtos' },
   { to: '/admin/abastecimento', label: '📋 Abastecimento' },
+  { to: '/admin/configuracoes', label: '⚙️ Configurações' },
   { to: '/admin/quiosque', label: '🏪 Quiosque' },
 ]
 

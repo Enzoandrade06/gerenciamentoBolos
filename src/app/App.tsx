@@ -1,7 +1,12 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import Kiosk from '../features/legacy/Kiosk'
+import { CartProvider } from '../features/shop/CartContext'
+import Shop from '../features/shop/Shop'
 import { Loading, NotFound } from '../components/ui'
+const Kiosk = lazy(() => import('../features/legacy/Kiosk'))
+const Checkout = lazy(() => import('../features/shop/Checkout'))
+const OrderPage = lazy(() => import('../features/shop/OrderPage'))
+const Configuracoes = lazy(() => import('../features/admin/Configuracoes'))
 const Pedido = lazy(() => import('../features/legacy/Pedido'))
 const AdminLayout = lazy(() => import('../features/admin/AdminLayout'))
 const Login = lazy(() => import('../features/admin/Login'))
@@ -14,10 +19,12 @@ const Quiosque = lazy(() => import('../features/admin/Quiosque'))
 export default function App() {
   return (
     <BrowserRouter>
+      <CartProvider>
       <Suspense fallback={<Loading />}>
         <Routes>
-          {/* "/" continua sendo o quiosque até a loja ficar pronta (bloco 4) */}
-          <Route path="/" element={<Kiosk />} />
+          <Route path="/" element={<Shop />} />
+          <Route path="/finalizar" element={<Checkout />} />
+          <Route path="/pedido/:token" element={<OrderPage />} />
           <Route path="/quiosque" element={<Kiosk />} />
           <Route path="/pedido" element={<Pedido />} />
           <Route path="/reservas" element={<Pedido />} />
@@ -27,10 +34,12 @@ export default function App() {
             <Route path="categorias" element={<Categorias />} />
             <Route path="produtos" element={<Produtos />} />
             <Route path="abastecimento" element={<Abastecimento />} />
+            <Route path="configuracoes" element={<Configuracoes />} />
             <Route path="quiosque" element={<Quiosque />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
+      </CartProvider>
     </BrowserRouter>)
 }

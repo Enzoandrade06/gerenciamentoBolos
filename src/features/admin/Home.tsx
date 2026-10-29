@@ -10,8 +10,9 @@ export default function Home() {
         <Link to="/admin/categorias" className={card + ' hover:ring-2 ring-orange-300'}><div className="text-3xl">🗂️</div><b>Categorias</b><p className="text-sm text-slate-500">Criar, ordenar, ativar e desativar.</p></Link>
         <Link to="/admin/produtos" className={card + ' hover:ring-2 ring-orange-300'}><div className="text-3xl">📦</div><b>Produtos</b><p className="text-sm text-slate-500">Cadastrar, fotos, preços e prévia.</p></Link>
         <Link to="/admin/abastecimento" className={card + ' hover:ring-2 ring-orange-300'}><div className="text-3xl">📋</div><b>Abastecimento</b><p className="text-sm text-slate-500">Estoque do dia dos produtos de pronta entrega.</p></Link>
+        <Link to="/admin/configuracoes" className={card + ' hover:ring-2 ring-orange-300'}><div className="text-3xl">⚙️</div><b>Configurações</b><p className="text-sm text-slate-500">Loja aberta/fechada, WhatsApp, entrega e Pix.</p></Link>
         <Link to="/admin/quiosque" className={card + ' hover:ring-2 ring-orange-300'}><div className="text-3xl">🏪</div><b>Quiosque</b><p className="text-sm text-slate-500">Estoque, reservas, pendências e funcionários (sistema atual).</p></Link>
-        {['🧾 Pedidos', '⚙️ Configurações'].map(t => <div key={t} className={card + ' opacity-60'}><div className="text-3xl">{t.split(' ')[0]}</div><b>{t.split(' ')[1]}</b><p className="text-sm text-slate-500">Em breve.</p></div>)}
+        {['🧾 Pedidos'].map(t => <div key={t} className={card + ' opacity-60'}><div className="text-3xl">{t.split(' ')[0]}</div><b>{t.split(' ')[1]}</b><p className="text-sm text-slate-500">Em breve.</p></div>)}
       </div>
     </div>)
 }
