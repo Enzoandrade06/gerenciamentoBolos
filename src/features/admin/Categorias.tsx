@@ -72,16 +72,16 @@ export default function Categorias() {
   return (
     <div className="space-y-4">
       <div><h1 className="text-2xl font-extrabold">Categorias</h1>
-        <p className="text-slate-600 text-sm">A ordem aqui é a ordem na loja. "Tudo" aparece sozinho, não precisa criar.</p></div>
+        <p className="text-muted text-sm">A ordem aqui é a ordem na loja. "Tudo" aparece sozinho, não precisa criar.</p></div>
       <Notice msg={msg} />
-      <form onSubmit={e => { e.preventDefault(); add() }} className="bg-white rounded-2xl shadow-sm p-4 flex gap-2 flex-wrap">
-        <input value={name} onChange={e => setName(e.target.value)} maxLength={60} placeholder="Nova categoria (ex.: Brownie)" className="flex-1 min-w-48 border-2 border-orange-200 rounded-xl p-3" />
-        <button disabled={busy} className={btn + ' bg-orange-500 text-white px-5'}>{busy ? 'Criando…' : '+ Criar'}</button>
+      <form onSubmit={e => { e.preventDefault(); add() }} className="bg-card rounded-2xl shadow-sm p-4 flex gap-2 flex-wrap">
+        <input value={name} onChange={e => setName(e.target.value)} maxLength={60} placeholder="Nova categoria (ex.: Brownie)" className="flex-1 min-w-48 border-2 border-brand-200 rounded-xl p-3" />
+        <button disabled={busy} className={btn + ' bg-paper0 text-white px-5'}>{busy ? 'Criando…' : '+ Criar'}</button>
       </form>
       {loading ? <Loading /> : (
         <ul className="space-y-2">
           {list.map((c, i) => (
-            <li key={c.id} className={`bg-white rounded-2xl shadow-sm p-3 flex items-center gap-2 flex-wrap ${c.is_active ? '' : 'opacity-60'}`}>
+            <li key={c.id} className={`bg-card rounded-2xl shadow-sm p-3 flex items-center gap-2 flex-wrap ${c.is_active ? '' : 'opacity-60'}`}>
               <div className="flex flex-col">
                 <button aria-label="Subir" disabled={i === 0} onClick={() => move(i, -1)} className="px-2 leading-none disabled:opacity-30">▲</button>
                 <button aria-label="Descer" disabled={i === list.length - 1} onClick={() => move(i, 1)} className="px-2 leading-none disabled:opacity-30">▼</button>
@@ -89,20 +89,20 @@ export default function Categorias() {
               <div className="flex-1 min-w-40">
                 {edit?.id === c.id ? (
                   <div className="flex gap-2 flex-wrap">
-                    <input autoFocus value={edit.name} onChange={e => setEdit({ id: c.id, name: e.target.value })} onKeyDown={e => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') setEdit(null) }} maxLength={60} className="flex-1 min-w-32 border-2 border-orange-300 rounded-lg p-2" />
+                    <input autoFocus value={edit.name} onChange={e => setEdit({ id: c.id, name: e.target.value })} onKeyDown={e => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') setEdit(null) }} maxLength={60} className="flex-1 min-w-32 border-2 border-brand-300 rounded-lg p-2" />
                     <button onClick={saveName} className={btn + ' bg-green-600 text-white'}>Salvar</button>
-                    <button onClick={() => setEdit(null)} className={btn + ' text-slate-500'}>Cancelar</button>
+                    <button onClick={() => setEdit(null)} className={btn + ' text-muted'}>Cancelar</button>
                   </div>
                 ) : (
                   <><div className="font-bold">{c.name}</div>
-                    <div className="text-xs text-slate-500">{c.products?.[0]?.count ?? 0} produto(s) · {c.is_active ? 'visível na loja' : 'oculta'}</div></>)}
+                    <div className="text-xs text-muted">{c.products?.[0]?.count ?? 0} produto(s) · {c.is_active ? 'visível na loja' : 'oculta'}</div></>)}
               </div>
               {edit?.id !== c.id && <>
                 <button onClick={() => setEdit({ id: c.id, name: c.name })} className={btn + ' text-blue-600'}>Editar</button>
-                <button onClick={() => toggle(c)} className={btn + (c.is_active ? ' bg-slate-200 text-slate-700' : ' bg-green-600 text-white')}>{c.is_active ? 'Desativar' : 'Ativar'}</button>
+                <button onClick={() => toggle(c)} className={btn + (c.is_active ? ' bg-line text-ink' : ' bg-green-600 text-white')}>{c.is_active ? 'Desativar' : 'Ativar'}</button>
                 <button onClick={() => remove(c)} className={btn + ' text-red-600'}>Excluir</button></>}
             </li>))}
-          {!list.length && <li className="text-slate-500 text-center py-8">Nenhuma categoria ainda. Crie a primeira acima.</li>}
+          {!list.length && <li className="text-muted text-center py-8">Nenhuma categoria ainda. Crie a primeira acima.</li>}
         </ul>)}
     </div>)
 }

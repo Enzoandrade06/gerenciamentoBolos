@@ -39,24 +39,24 @@ export default function Abastecimento() {
   return (
     <div className="space-y-4">
       <div><h1 className="text-2xl font-extrabold">Abastecimento do dia</h1>
-        <p className="text-slate-600 text-sm">Digite quantos de cada produto de <b>pronta entrega</b> estão disponíveis <b>agora</b>. Pedidos já feitos hoje já foram descontados. No dia seguinte o estoque volta a zero.</p></div>
+        <p className="text-muted text-sm">Digite quantos de cada produto de <b>pronta entrega</b> estão disponíveis <b>agora</b>. Pedidos já feitos hoje já foram descontados. No dia seguinte o estoque volta a zero.</p></div>
       <Notice msg={msg} />
       {loading ? <Loading /> : (
-        <div className="bg-white rounded-2xl shadow-sm divide-y">
+        <div className="bg-card rounded-2xl shadow-sm divide-y">
           {list.map(p => (
             <div key={p.id} className="p-3 flex items-center gap-3 flex-wrap">
               <div className="flex-1 min-w-40">
                 <div className="font-bold">{p.name}</div>
-                <div className="text-xs text-slate-500">{p.categories?.name ?? '—'}{!p.is_active ? ' · rascunho' : ''}{!p.is_available ? ' · esgotado (manual)' : ''}</div>
-                <div className={`text-sm font-semibold ${now(p) > 0 ? 'text-green-700' : 'text-slate-500'}`}>{p.stock_date === today ? `Restam ${p.stock_qty ?? 0} hoje` : 'Sem estoque lançado hoje'}</div>
+                <div className="text-xs text-muted">{p.categories?.name ?? '—'}{!p.is_active ? ' · rascunho' : ''}{!p.is_available ? ' · esgotado (manual)' : ''}</div>
+                <div className={`text-sm font-semibold ${now(p) > 0 ? 'text-green-700' : 'text-muted'}`}>{p.stock_date === today ? `Restam ${p.stock_qty ?? 0} hoje` : 'Sem estoque lançado hoje'}</div>
               </div>
-              <label className="flex items-center gap-2"><span className="text-sm text-slate-500">Disponível agora</span>
-                <input type="number" min={0} max={9999} inputMode="numeric" value={vals[p.id] ?? ''} placeholder={String(now(p))} onChange={e => setVals({ ...vals, [p.id]: e.target.value })} className="w-24 border-2 border-orange-200 rounded-xl p-2 text-center text-lg" /></label>
+              <label className="flex items-center gap-2"><span className="text-sm text-muted">Disponível agora</span>
+                <input type="number" min={0} max={9999} inputMode="numeric" value={vals[p.id] ?? ''} placeholder={String(now(p))} onChange={e => setVals({ ...vals, [p.id]: e.target.value })} className="w-24 border-2 border-brand-200 rounded-xl p-2 text-center text-lg" /></label>
             </div>))}
-          {!list.length && <div className="p-8 text-center text-slate-500">Nenhum produto de pronta entrega. Cadastre em Produtos (tipo "Pronta entrega").</div>}
+          {!list.length && <div className="p-8 text-center text-muted">Nenhum produto de pronta entrega. Cadastre em Produtos (tipo "Pronta entrega").</div>}
         </div>)}
       {list.length > 0 && <div className="flex gap-2 flex-wrap">
-        <button disabled={busy} onClick={() => save(false)} className={btn + ' bg-orange-500 text-white'}>{busy ? 'Salvando…' : 'Salvar estoque de hoje'}</button>
-        <button disabled={busy} onClick={() => save(true)} className={btn + ' bg-slate-200 text-slate-700'}>Zerar tudo</button></div>}
+        <button disabled={busy} onClick={() => save(false)} className={btn + ' bg-paper0 text-white'}>{busy ? 'Salvando…' : 'Salvar estoque de hoje'}</button>
+        <button disabled={busy} onClick={() => save(true)} className={btn + ' bg-line text-ink'}>Zerar tudo</button></div>}
     </div>)
 }

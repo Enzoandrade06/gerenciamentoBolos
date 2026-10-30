@@ -3,7 +3,7 @@ import { sb } from '../../lib/supabase'
 type Fl = { id: number; name: string; available: number }
 type Stock = { open: boolean; contact?: string; flavors?: Fl[] }
 const mask = (v: string) => { const d = v.replace(/\D/g, '').slice(0, 11); return d.length <= 2 ? d : d.length <= 6 ? `(${d.slice(0, 2)}) ${d.slice(2)}` : d.length <= 10 ? `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}` : `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}` }
-const field = 'w-full text-lg p-3 rounded-xl border-2 border-orange-200 bg-white focus:border-orange-400 outline-none'
+const field = 'w-full text-lg p-3 rounded-xl border-2 border-brand-200 bg-card focus:border-brand-400 outline-none'
 
 export default function Pedido() {
   const [stock, setStock] = useState<Stock | null>(null); const [q, setQ] = useState<Record<number, number>>({})
@@ -37,67 +37,67 @@ export default function Pedido() {
     if (url) setTimeout(() => { window.location.href = url }, 1500)
   }
 
-  const shell = 'min-h-screen bg-orange-50 text-slate-800'
+  const shell = 'min-h-screen bg-paper text-ink'
   if (done) return (
     <div className={shell + ' flex items-center justify-center p-6'}>
-      <div className="bg-white rounded-3xl shadow p-8 max-w-md w-full text-center space-y-4">
+      <div className="bg-card rounded-3xl shadow p-8 max-w-md w-full text-center space-y-4">
         <div className="text-6xl">✅</div>
         <h1 className="text-2xl font-extrabold text-green-700">Reserva registrada!</h1>
         {done.url
           ? <><p>Abrindo o WhatsApp para você enviar a mensagem…</p><a href={done.url} className="block bg-green-600 text-white font-bold text-lg rounded-2xl py-4">Abrir WhatsApp</a></>
           : <p>Avise a Faby que você fez o pedido. Obrigado! 🍰</p>}
-        <button onClick={() => setDone(null)} className="text-slate-500 underline">Fazer outro pedido</button>
+        <button onClick={() => setDone(null)} className="text-muted underline">Fazer outro pedido</button>
       </div>
     </div>)
 
   return (
     <div className={shell + ' pb-32'}>
-      <header className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-5 py-6 text-center shadow">
+      <header className="bg-gradient-to-r from-brand-500 to-brand-400 text-white px-5 py-6 text-center shadow">
         <h1 className="text-2xl font-extrabold">🍰 Caseirinhos da Faby</h1>
         <p className="opacity-90">Reserve seus bolos de pote</p>
       </header>
       <main className="max-w-2xl mx-auto p-4">
-        {!stock && <p className="text-center text-slate-500 mt-10">Carregando…</p>}
+        {!stock && <p className="text-center text-muted mt-10">Carregando…</p>}
         {stock && !stock.open && (
-          <div className="bg-white rounded-3xl shadow p-8 text-center mt-6 space-y-2">
+          <div className="bg-card rounded-3xl shadow p-8 text-center mt-6 space-y-2">
             <div className="text-5xl">😴</div><h2 className="text-xl font-bold">Pedidos fechados no momento</h2>
-            <p className="text-slate-500">A Faby avisa no status quando abrir.</p>
-            <button onClick={load} className="mt-2 text-orange-600 font-semibold underline">Atualizar</button>
+            <p className="text-muted">A Faby avisa no status quando abrir.</p>
+            <button onClick={load} className="mt-2 text-brand-600 font-semibold underline">Atualizar</button>
           </div>)}
         {stock?.open && <>
-          <p className="text-slate-600 mb-3">Escolha a quantidade de cada sabor:</p>
+          <p className="text-muted mb-3">Escolha a quantidade de cada sabor:</p>
           <div className="grid grid-cols-2 gap-3">
             {flavors.map(f => { const n = q[f.id] ?? 0; const out = f.available <= 0; return (
-              <div key={f.id} className={`rounded-2xl border-2 p-3 text-center shadow-sm transition ${out ? 'bg-slate-100 border-slate-200 opacity-60' : n > 0 ? 'bg-orange-500 border-orange-600 text-white' : 'bg-white border-orange-200'}`}>
+              <div key={f.id} className={`rounded-2xl border-2 p-3 text-center shadow-sm transition ${out ? 'bg-line border-line opacity-60' : n > 0 ? 'bg-paper0 border-brand-600 text-white' : 'bg-card border-brand-200'}`}>
                 <div className="text-lg font-extrabold">{f.name}</div>
-                <div className={`text-sm mb-2 ${n > 0 ? 'text-orange-100' : 'text-slate-500'}`}>{out ? 'Esgotado' : `${f.available} ${f.available === 1 ? 'disponível' : 'disponíveis'}`}</div>
+                <div className={`text-sm mb-2 ${n > 0 ? 'text-white/80' : 'text-muted'}`}>{out ? 'Esgotado' : `${f.available} ${f.available === 1 ? 'disponível' : 'disponíveis'}`}</div>
                 <div className="flex items-center justify-center gap-3">
-                  <button disabled={out || n === 0} onClick={() => set(f, n - 1)} className="w-11 h-11 rounded-full bg-orange-100 text-orange-800 text-2xl font-bold disabled:opacity-40 active:scale-95">−</button>
+                  <button disabled={out || n === 0} onClick={() => set(f, n - 1)} className="w-11 h-11 rounded-full bg-brand-100 text-brand-700 text-2xl font-bold disabled:opacity-40 active:scale-95">−</button>
                   <span className="text-2xl font-extrabold w-8">{n}</span>
-                  <button disabled={out || n >= f.available} onClick={() => set(f, n + 1)} className="w-11 h-11 rounded-full bg-orange-100 text-orange-800 text-2xl font-bold disabled:opacity-40 active:scale-95">+</button>
+                  <button disabled={out || n >= f.available} onClick={() => set(f, n + 1)} className="w-11 h-11 rounded-full bg-brand-100 text-brand-700 text-2xl font-bold disabled:opacity-40 active:scale-95">+</button>
                 </div>
               </div>) })}
           </div>
         </>}
       </main>
       {stock?.open && (
-        <div className="fixed bottom-0 inset-x-0 bg-white border-t shadow-lg p-4" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
-          <button disabled={!total} onClick={() => { setErr(''); setModal(true) }} className="max-w-2xl mx-auto block w-full bg-green-600 disabled:bg-slate-300 text-white font-extrabold text-xl rounded-2xl py-4 active:scale-95">
+        <div className="fixed bottom-0 inset-x-0 bg-card border-t shadow-lg p-4" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
+          <button disabled={!total} onClick={() => { setErr(''); setModal(true) }} className="max-w-2xl mx-auto block w-full bg-green-600 disabled:bg-slate-400 text-white font-extrabold text-xl rounded-2xl py-4 active:scale-95">
             {total ? `Finalizar pedido (${total} ${total === 1 ? 'bolo' : 'bolos'})` : 'Escolha seus bolos'}
           </button>
         </div>)}
       {modal && (
         <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50" onClick={() => setModal(false)}>
-          <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-3 max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="bg-card w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-3 max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <h2 className="text-xl font-extrabold">Confirmar solicitação</h2>
-            <div className="bg-orange-50 rounded-xl p-3 text-sm">{items.map(i => <div key={i.id}>{i.qty}× {i.name}</div>)}</div>
+            <div className="bg-paper rounded-xl p-3 text-sm">{items.map(i => <div key={i.id}>{i.qty}× {i.name}</div>)}</div>
             <input className={field} placeholder="Nome completo" maxLength={120} autoComplete="name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
             <input className={field} placeholder="Setor" list="setores" maxLength={60} value={form.sector} onChange={e => setForm({ ...form, sector: e.target.value })} />
             <datalist id="setores">{sectors.map(x => <option key={x} value={x} />)}</datalist>
             <input className={field} placeholder="Telefone com DDD" inputMode="tel" value={mask(form.phone)} onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 11) })} />
             {err && <p className="text-red-600 font-semibold">⚠️ {err}</p>}
             <button disabled={busy} onClick={confirm} className="w-full bg-green-600 text-white font-extrabold text-lg rounded-2xl py-4 active:scale-95">{busy ? 'Enviando…' : 'Confirmar solicitação'}</button>
-            <button onClick={() => setModal(false)} className="w-full text-slate-500 py-2">Voltar</button>
+            <button onClick={() => setModal(false)} className="w-full text-muted py-2">Voltar</button>
           </div>
         </div>)}
     </div>)

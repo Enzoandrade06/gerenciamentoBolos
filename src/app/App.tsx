@@ -6,6 +6,8 @@ import { Loading, NotFound } from '../components/ui'
 const Kiosk = lazy(() => import('../features/legacy/Kiosk'))
 const Checkout = lazy(() => import('../features/shop/Checkout'))
 const OrderPage = lazy(() => import('../features/shop/OrderPage'))
+const Pedidos = lazy(() => import('../features/admin/Pedidos'))
+const Clientes = lazy(() => import('../features/admin/Clientes'))
 const Configuracoes = lazy(() => import('../features/admin/Configuracoes'))
 const Pedido = lazy(() => import('../features/legacy/Pedido'))
 const AdminLayout = lazy(() => import('../features/admin/AdminLayout'))
@@ -34,6 +36,8 @@ export default function App() {
             <Route path="categorias" element={<Categorias />} />
             <Route path="produtos" element={<Produtos />} />
             <Route path="abastecimento" element={<Abastecimento />} />
+            <Route path="pedidos" element={<Pedidos />} />
+            <Route path="clientes" element={<Clientes />} />
             <Route path="configuracoes" element={<Configuracoes />} />
             <Route path="quiosque" element={<Quiosque />} />
           </Route>

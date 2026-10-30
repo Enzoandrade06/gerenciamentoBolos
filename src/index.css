@@ -1,1 +1,43 @@
-@import "tailwindcss"; body{background:#fff7ed;-webkit-tap-highlight-color:transparent;user-select:none}
+@import "tailwindcss";
+
+/* Paleta bege + rosa. As cores são variáveis: o tema escuro só troca os valores. */
+@theme {
+  --color-paper: #faf3ec;
+  --color-card: #fffdfb;
+  --color-ink: #3b2a2f;
+  --color-muted: #7d6b70;
+  --color-line: #eadbd0;
+  --color-sand-100: #f6ebdf;
+  --color-sand-200: #ecd9c6;
+  --color-brand-50: #fdf2f6;
+  --color-brand-100: #fbe4ec;
+  --color-brand-200: #f6c9d9;
+  --color-brand-300: #ee9fbb;
+  --color-brand-400: #e4709c;
+  --color-brand-500: #d4467a;
+  --color-brand-600: #b8355f;
+  --color-brand-700: #962a4c;
+}
+.dark {
+  color-scheme: dark;
+  --color-paper: #1d1618;
+  --color-card: #2a2023;
+  --color-ink: #f7eceF;
+  --color-muted: #bba9ae;
+  --color-line: #44343a;
+  --color-sand-100: #33262a;
+  --color-sand-200: #46343a;
+  --color-brand-50: #35202a;
+  --color-brand-100: #4a2a3a;
+  --color-brand-200: #6d3b53;
+  --color-brand-300: #a65c7d;
+  --color-brand-400: #e0759d;
+  --color-brand-500: #d4467a;
+  --color-brand-600: #f08db0;
+  --color-brand-700: #f6b3cb;
+}
+@layer base {
+  *, ::before, ::after { border-color: var(--color-line); }
+  body { background: var(--color-paper); color: var(--color-ink); -webkit-tap-highlight-color: transparent; }
+  ::placeholder { color: var(--color-muted); opacity: .7; }
+}

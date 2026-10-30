@@ -8,7 +8,7 @@ export default function CartSheet({ onClose }: { onClose: () => void }) {
   const cart = useCart(); const nav = useNavigate()
   return (
     <Modal title="Seu pedido" onClose={onClose}>
-      {cart.items.length === 0 ? <p className="text-slate-500 text-center py-8">Seu carrinho está vazio.</p> : <>
+      {cart.items.length === 0 ? <p className="text-muted text-center py-8">Seu carrinho está vazio.</p> : <>
         <CartList />
         <NoteField />
         <div className="flex justify-between text-lg font-extrabold border-t pt-3"><span>Subtotal</span><span>{centsToBRL(cart.subtotal)}</span></div>

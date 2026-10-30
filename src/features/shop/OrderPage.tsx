@@ -27,17 +27,17 @@ export default function OrderPage() {
   }, [fresh, link, token])
 
   if (o === undefined) return <Loading text="Carregando o pedido…" />
-  if (o === null) return <div className="min-h-screen bg-orange-50 flex flex-col items-center justify-center gap-3 p-6 text-center"><div className="text-5xl">🔍</div><p>Pedido não encontrado.</p><Link to="/" className="text-orange-600 underline">Voltar ao cardápio</Link></div>
+  if (o === null) return <div className="min-h-screen bg-paper flex flex-col items-center justify-center gap-3 p-6 text-center"><div className="text-5xl">🔍</div><p>Pedido não encontrado.</p><Link to="/" className="text-brand-600 underline">Voltar ao cardápio</Link></div>
 
   const status = o.status === 'ready' ? (o.fulfillment === 'delivery' ? 'Pronto para entrega' : 'Pronto para retirada') : LABEL[o.status] ?? o.status
   async function copy(text: string) {
     try { await navigator.clipboard.writeText(text) } catch { const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove() }
     setCopied(true); setTimeout(() => setCopied(false), 2500)
   }
-  const card = 'bg-white rounded-2xl p-4 shadow-sm space-y-2'
+  const card = 'bg-card rounded-2xl p-4 shadow-sm space-y-2'
   return (
-    <div className="min-h-screen bg-orange-50 text-slate-800 pb-16">
-      <header className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-5 py-6 text-center shadow">
+    <div className="min-h-screen bg-paper text-ink pb-16">
+      <header className="bg-gradient-to-r from-brand-500 to-brand-400 text-white px-5 py-6 text-center shadow">
         <div className="text-4xl">{o.status === 'cancelled' ? '❌' : '✅'}</div>
         <h1 className="text-2xl font-extrabold">Pedido #{o.order_number}</h1>
         <p className="font-semibold opacity-95">{status}</p>
@@ -45,19 +45,19 @@ export default function OrderPage() {
       <main className="max-w-xl mx-auto p-4 space-y-4">
         {fresh && link && <div role="status" className="rounded-xl bg-green-100 text-green-900 px-4 py-3 text-sm font-semibold">Pedido registrado! Abrindo o WhatsApp para você enviar a confirmação…</div>}
         {link && <a href={link} className="block text-center bg-green-600 text-white font-extrabold text-lg rounded-2xl py-4 active:scale-95">💬 Enviar pedido pelo WhatsApp</a>}
-        {!link && <p className="text-sm text-slate-600 bg-white rounded-xl p-3">Guarde o número do pedido (#{o.order_number}) e avise a loja.</p>}
+        {!link && <p className="text-sm text-muted bg-card rounded-xl p-3">Guarde o número do pedido (#{o.order_number}) e avise a loja.</p>}
         {o.payment_method === 'pix' && o.payment_status === 'confirmed' && <div className="rounded-xl bg-green-100 text-green-900 px-4 py-3 font-bold">✅ Pagamento confirmado</div>}
         {o.pix && (
           <section className={card}><h2 className="font-extrabold">Pagamento via Pix</h2>
-            <div className="text-2xl font-extrabold text-orange-600">{centsToBRL(o.total_cents)}</div>
+            <div className="text-2xl font-extrabold text-brand-600">{centsToBRL(o.total_cents)}</div>
             {o.pix.key ? <>
-              <div className="bg-orange-50 rounded-xl p-3 break-all font-mono text-sm">{o.pix.key}</div>
-              <button onClick={() => copy(o.pix!.key!)} className="w-full bg-orange-500 text-white font-bold rounded-xl py-3 active:scale-95">{copied ? 'Chave copiada ✅' : 'Copiar chave Pix'}</button>
-              <div className="text-sm text-slate-600">{[o.pix.receiver && `Recebedor: ${o.pix.receiver}`, o.pix.bank && `Instituição: ${o.pix.bank}`].filter(Boolean).join(' · ')}</div>
+              <div className="bg-paper rounded-xl p-3 break-all font-mono text-sm">{o.pix.key}</div>
+              <button onClick={() => copy(o.pix!.key!)} className="w-full bg-paper0 text-white font-bold rounded-xl py-3 active:scale-95">{copied ? 'Chave copiada ✅' : 'Copiar chave Pix'}</button>
+              <div className="text-sm text-muted">{[o.pix.receiver && `Recebedor: ${o.pix.receiver}`, o.pix.bank && `Instituição: ${o.pix.bank}`].filter(Boolean).join(' · ')}</div>
               {o.pix.instructions && <p className="text-sm whitespace-pre-line">{o.pix.instructions}</p>}
-              {o.pix.link && /^https:\/\//.test(o.pix.link) && <a href={o.pix.link} target="_blank" rel="noopener noreferrer" className="block text-center border-2 border-orange-400 text-orange-700 font-bold rounded-xl py-3">Abrir pagamento</a>}
-            </> : <p className="text-sm text-slate-600">A loja ainda não cadastrou a chave Pix. Combine o pagamento pelo WhatsApp.</p>}
-            <p className="text-xs text-slate-500">O pagamento ainda precisa ser confirmado pela loja. Enviar o comprovante pelo WhatsApp ajuda.</p>
+              {o.pix.link && /^https:\/\//.test(o.pix.link) && <a href={o.pix.link} target="_blank" rel="noopener noreferrer" className="block text-center border-2 border-brand-400 text-brand-700 font-bold rounded-xl py-3">Abrir pagamento</a>}
+            </> : <p className="text-sm text-muted">A loja ainda não cadastrou a chave Pix. Combine o pagamento pelo WhatsApp.</p>}
+            <p className="text-xs text-muted">O pagamento ainda precisa ser confirmado pela loja. Enviar o comprovante pelo WhatsApp ajuda.</p>
           </section>)}
         {o.payment_method === 'cash' && <div className={card}><b>Pagamento em dinheiro</b> na {o.fulfillment === 'delivery' ? 'entrega' : 'retirada'}: {centsToBRL(o.total_cents)}.</div>}
         <section className={card}><h2 className="font-extrabold">Itens</h2>
@@ -70,7 +70,7 @@ export default function OrderPage() {
           {o.requested_for && <div><b>Data da encomenda:</b> {fmtISO(o.requested_for)}</div>}
           {o.notes && <div><b>Observações:</b> {o.notes}</div>}
         </section>
-        <Link to="/" className="block text-center text-orange-700 underline">Voltar ao cardápio</Link>
+        <Link to="/" className="block text-center text-brand-700 underline">Voltar ao cardápio</Link>
       </main>
     </div>)
 }
